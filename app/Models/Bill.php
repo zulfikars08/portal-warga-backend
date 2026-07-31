@@ -1,0 +1,3 @@
+<?php
+namespace App\Models;
+class Bill extends PortalModel {protected function casts():array{return ['period'=>'date','due_date'=>'date','fee_snapshot'=>'array'];}public function specialBill(){return $this->belongsTo(SpecialBill::class);}public function house(){return $this->belongsTo(House::class);}public function household(){return $this->belongsTo(Household::class);}public function feeRate(){return $this->belongsTo(FeeRate::class);}public function responsibleHead(){return $this->belongsTo(Resident::class,'responsible_head_resident_id');}public function paymentAllocations(){return $this->hasMany(PaymentAllocation::class);}}

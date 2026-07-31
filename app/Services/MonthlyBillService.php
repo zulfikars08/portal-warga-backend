@@ -1,0 +1,11 @@
+<?php
+namespace App\Services;
+use App\Models\{Bill,FeeRate,Household};
+use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+class MonthlyBillService {
+ public const REQUIRED_CODES=['SECURITY','CLEANING'];
+ public function generate(string $period):array{$month=CarbonImmutable::parse($period)->startOfMonth();return DB::transaction(function()use($month){$rates=$this->resolveRates($month->toDateString());$households=Household::with(['house','head'])->where('active',true)->whereNull('ended_at')->get();$created=0;foreach($households as $household)foreach($rates as $code=>$rate){$bill=Bill::firstOrCreate(['house_id'=>$household->house_id,'fee_code'=>$code,'period'=>$month],['household_id'=>$household->id,'fee_rate_id'=>$rate->id,'responsible_head_resident_id'=>$household->head_resident_id,'house_code_snapshot'=>$household->house->house_code,'responsible_head_name_snapshot'=>$household->head->full_name,'fee_name_snapshot'=>$rate->name,'amount_snapshot'=>$rate->amount,'type'=>'routine','title'=>$rate->name,'due_date'=>$month->day(7),'amount'=>$rate->amount,'paid_amount'=>0,'status'=>'UNPAID','fee_snapshot'=>['id'=>$rate->id,'fee_code'=>$rate->fee_code,'name'=>$rate->name,'amount'=>$rate->amount,'effective_from'=>$rate->effective_from->toDateString(),'effective_until'=>$rate->effective_until?->toDateString()]]);if($bill->wasRecentlyCreated)$created++;}return ['period'=>$month->toDateString(),'household_count'=>$households->count(),'created'=>$created];});}
+ public function resolveRates(string $period):array{$rates=[];foreach(self::REQUIRED_CODES as $code){$matches=FeeRate::where('fee_code',$code)->where('active',true)->whereDate('effective_from','<=',$period)->where(fn($q)=>$q->whereNull('effective_until')->orWhereDate('effective_until','>=',$period))->lockForUpdate()->get();if($matches->isEmpty())throw ValidationException::withMessages(['fee_code'=>"Tarif aktif untuk kode {$code} tidak ditemukan pada periode {$period}."]);if($matches->count()>1)throw ValidationException::withMessages(['fee_code'=>"Tarif aktif untuk kode {$code} ambigu pada periode {$period}."]);$rates[$code]=$matches->first();}return $rates;}
+}

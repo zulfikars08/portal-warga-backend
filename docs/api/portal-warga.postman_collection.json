@@ -1,0 +1,15 @@
+{
+  "info": {"name":"Portal Warga API (actual routes)","description":"Set base_url and credentials. MySQL runtime not available when collection was authored.","schema":"https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},
+  "variable": [{"key":"base_url","value":"http://127.0.0.1:8000/api/v1"},{"key":"token","value":""},{"key":"email","value":"admin@example.com"},{"key":"password","value":"change-me"},{"key":"house_id","value":"1"},{"key":"resident_id","value":"1"}],
+  "auth": {"type":"bearer","bearer":[{"key":"token","value":"{{token}}","type":"string"}]},
+  "item": [
+    {"name":"Login","auth":{"type":"noauth"},"event":[{"listen":"test","script":{"exec":["if (pm.response.code === 200) pm.collectionVariables.set('token', pm.response.json().token);"]}}],"request":{"method":"POST","header":[{"key":"Accept","value":"application/json"},{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"},"url":"{{base_url}}/login"}},
+    {"name":"Dashboard","request":{"method":"GET","header":[{"key":"Accept","value":"application/json"}],"url":"{{base_url}}/dashboard"}},
+    {"name":"Houses - List","request":{"method":"GET","header":[{"key":"Accept","value":"application/json"}],"url":"{{base_url}}/houses?page=1&per_page=15"}},
+    {"name":"Houses - Create","request":{"method":"POST","header":[{"key":"Accept","value":"application/json"},{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"number\": \"A-01\",\n  \"address\": \"Alamat data uji\",\n  \"status\": \"vacant\"\n}"},"url":"{{base_url}}/houses"}},
+    {"name":"Residents - List","request":{"method":"GET","header":[{"key":"Accept","value":"application/json"}],"url":"{{base_url}}/residents?page=1&per_page=15"}},
+    {"name":"Payment - Create","request":{"method":"POST","header":[{"key":"Accept","value":"application/json"},{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"house_id\": {{house_id}},\n  \"amount\": 50000,\n  \"paid_at\": \"2026-01-15\",\n  \"allocations\": []\n}"},"url":"{{base_url}}/payments"}},
+    {"name":"Finance Report","request":{"method":"GET","header":[{"key":"Accept","value":"application/json"}],"url":"{{base_url}}/reports/finance?from=2026-01-01&to=2026-12-31"}},
+    {"name":"Export CSV","request":{"method":"GET","header":[{"key":"Accept","value":"text/csv"}],"url":"{{base_url}}/exports/csv?from=2026-01-01&to=2026-12-31"}}
+  ]
+}
